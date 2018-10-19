@@ -4,9 +4,11 @@
 
   var $ = jQuery
 
+  const SKIP_SIDE = 'A'
+
   GrilleCipher = function (formElement) {
-    this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler)
-    this.keyField = $('<input size="20" />').keyup(this, this._keyUpHandler).val(this._shuffle(this._generateKey(4)))
+    this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler.bind(this))
+    this.keyField = $('<input size="20" />').keyup(this, this._keyUpHandler.bind(this)).val(this.getRandomKeyParams())
     this.cipherContainer = $(document.createElement('div'))
 
     formElement.append(
@@ -14,7 +16,6 @@
       $(document.createElement('p')).text('Text att kryptera: ').append(this.inputField),
       $(document.createElement('p')).text('Krypterad text: ').append(this.cipherContainer)
     )
-
 
     // for (var i = 0; i < 4; i++) {
     //   var rotatedCoords = this.rotateCoords(keyCoords, i)
@@ -31,12 +32,18 @@
     //   [' ', ' ', '#', ' ', '#', ' '],
     //   ['#', ' ', ' ', ' ', ' ', ' ']
 
-    var keyCoords = this._getKeyCoords(['324-15', '--132', '-1-'])
+    var keyParams = this.getRandomKeyParams()
+    console.log(keyParams)
 
+    var keyCoords = this.getFixedKeyCoords('324A15AA132A1AA')
+
+    console.log('Test 1:')
     var input = 'FEST HOS EMMA PÅ LÖRDAG FÖR KRYPTOKLUBBEN'.replace(/\s/g, '')
     var expected = 'OMFAKG EFLÖPS RUÅTKB LHRBÖO YESREP MDNTXA'
     var actual = this.encrypt(input, keyCoords)
-    console.log('Test 1:')
+    console.log('Encrypt this: ', input.split(/(.{9})/).filter(function (value) {
+      return !!value
+    }).join(' '))
     console.log('Expected:     ', expected)
     console.log('Actual:       ', actual)
     console.log(expected === actual ? 'The algorithm WORKS!' : 'Something is wrong.')
@@ -45,10 +52,29 @@
     var input = 'DRICK INTE! DU KAN DÖ. DET ÄR GIFT I LÄSKEN.'.replace(/\s/g, '').replace(/[^A-Za-zÅÄÖåäö]/g, 'X')
     var expected = 'IXDDLD REÄTUI ÄSKCRK AKGENI INNDTF EÖXTXX'
     var actual = this.encrypt(input, keyCoords)
+    console.log('Encrypt this: ', input.split(/(.{9})/).filter(function (value) {
+      return !!value
+    }).join(' '))
     console.log('Expected:     ', expected)
     console.log('Actual:       ', actual)
     console.log(expected === actual ? 'The algorithm WORKS!' : 'Something is wrong.')
   }
+
+  GrilleCipher.prototype.getFixedKeyCoords = function (keyParams) {
+    return this._getKeyCoords([
+      keyParams.substr(0, 6),
+      keyParams.substr(6, 5),
+      keyParams.substr(11, 4)])
+
+  }
+
+  GrilleCipher.prototype.getRandomKeyParams = function () {
+    return [
+      this._shuffle(['1', '2', '3', '4', '5', SKIP_SIDE]).join(''),
+      this._shuffle(['1', '2', '3', SKIP_SIDE, SKIP_SIDE]).join(''),
+      this._shuffle(['1', SKIP_SIDE, SKIP_SIDE, SKIP_SIDE]).join('')].join('')
+  }
+
 
   GrilleCipher.prototype.getKey = function (keyData) {
     return this._getKeyCoords(keyData)
@@ -57,10 +83,6 @@
   GrilleCipher.prototype.encrypt = function (input, keyCoords) {
     var inputChars = input
     var size = Math.sqrt(keyCoords.length * 4)
-
-    console.log('Encrypt this: ', inputChars.split(/(.{9})/).filter(function (value) {
-      return !!value
-    }).join(' '))
 
     var keys = [
       this.rotateCoords(keyCoords, 0),
@@ -125,20 +147,8 @@
   }
 
   GrilleCipher.prototype._keyUpHandler = function (event) {
-    var that = event.data
-    that._encrypt(this.value)
-  }
-
-  GrilleCipher.prototype._generateKey = function () {
-    return this._range(5)
-  }
-
-  GrilleCipher.prototype._range = function (n) {
-    var values = Array(n)
-    while (n) {
-      values[n - 1] = n--
-    }
-    return values
+    // var that = event.data
+    this._encrypt()
   }
 
   GrilleCipher.prototype.createMatrix = function (size, defaultValue) {
@@ -159,25 +169,25 @@
       var radius = circularCoords.length - i
       var seq = circularCoords[i]
 
-      console.log('====================== Processing square with radius:', radius)
-      console.log('====================== The key:', seq)
+      // console.log('====================== Processing square with radius:', radius)
+      // console.log('====================== The key:', seq)
 
       var rotations = 0
       var lastPos = 0
       for (var x = 0; x < seq.length; x++) {
-        if (seq[x] === '-') {
+        if (seq[x] === SKIP_SIDE) {
           rotations++
           continue
         }
         var pos = parseInt(seq[x])
         if (pos < lastPos + (radius - 1)) {
-          console.log('   Rotate because ', pos, ' is less than ', lastPos + 1)
+          // console.log('   Rotate because ', pos, ' is less than ', lastPos + 1)
           rotations++
         }
         var sourceCoord = [pos - (radius + 1), radius - 1]
         var newCoord = this._rotate(sourceCoord, rotations)
         keyCoords.push(newCoord)
-        console.log('From: ', sourceCoord.join(), ' To: ', newCoord.join())
+        // console.log('From: ', sourceCoord.join(), ' To: ', newCoord.join())
 
         lastPos = pos
       }
@@ -198,6 +208,7 @@
     }
     return [x, y]
   }
+
   GrilleCipher.prototype._shuffle = function (input) {
     var array = Array.from(input)
     for (var i = array.length - 1; i > 0; i--) {
@@ -211,31 +222,16 @@
 
   GrilleCipher.prototype._encrypt = function (text) {
     var symbols = 'ABCDEFGHIJKLMNOPRSTUVXYZÅÄÖ'
-    this.cipherContainer.text('')
-    var spaceDetected = false
-    var inputValid = true
-    for (var i = 0; i < text.length; i++) {
-      var c = text.toUpperCase().charAt(i)
-      if (c === ' ') {
-        spaceDetected = true
-      }
-      else {
-        var offset = symbols.indexOf(c)
-        if (offset >= 0) {
-          var el = document.createElement('img')
-          el.src = 'http://www.nackasmu.se/tools/cipher/grille-symbol-' + (offset + 1) + '.gif'
-          if (spaceDetected) {
-            el.style.marginLeft = '40px'
-            spaceDetected = false
-          }
-          this.cipherContainer.append(el)
-        }
-        else {
-          inputValid = false
-        }
-      }
-    }
-    this.inputField.toggleClass('cipher-formfield-error', !inputValid).attr('title', inputValid ? '' : 'Texten innehåller bokstäver/tecken som inte kan översättas.')
+
+    var text = this.inputField.val()
+    var key = this.keyField.val()
+
+    var keyCoords = this.getFixedKeyCoords(key)
+
+    var cipherText = this.encrypt(text, keyCoords)
+
+    this.cipherContainer.text(cipherText)
+    // this.inputField.toggleClass('cipher-formfield-error', !inputValid).attr('title', inputValid ? '' : 'Texten innehåller bokstäver/tecken som inte kan översättas.')
   }
 
   $('.cipher-grille').each(function () {new GrilleCipher($(this))})
