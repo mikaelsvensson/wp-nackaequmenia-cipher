@@ -18,18 +18,17 @@
     // var that = this
     // Array(10).fill(0,0,10).forEach(function (value) { console.log(that._shuffle(that._generateKey(4))) })
 
-    var actual = this._getKeyCoords(['324-15'/*, '--132', '-1'*/])
+    var actual = this._getKeyCoords(['324-15', '--132', '-1'])
     console.log(actual.join('\n'))
     var expected = [
-      '  #   ',
-      '#    #',
-      '   #  ',
-      ' #   #',
-      '  # # ',
-      '#     '
+      [' ', ' ', '#', ' ', ' ', ' '],
+      ['#', ' ', ' ', ' ', ' ', '#'],
+      [' ', ' ', ' ', '#', ' ', ' '],
+      [' ', '#', ' ', ' ', ' ', '#'],
+      [' ', ' ', '#', ' ', '#', ' '],
+      ['#', ' ', ' ', ' ', ' ', ' ']
     ]
     console.log(expected.join('\n'))
-
   }
 
   GrilleCipher.prototype._keyUpHandler = function (event) {
@@ -49,17 +48,32 @@
     return values
   }
 
-  GrilleCipher.prototype._getKeyCoords = function (circularCoords) {
-    var size = 6//circularCoords.length * 2
-    var result = [], b
-    while (result.push(b = []) < size + 1) {
-      while (b.push(' ') < size + 1) {}
+  GrilleCipher.prototype.createMatrix = function (size, defaultValue) {
+    var result = []
+    for (var y = 0; y < size; y++) {
+      result[y] = []
+      for (var x = 0; x < size; x++) {
+        result[y][x] = defaultValue
+      }
     }
+    return result
+  }
+  GrilleCipher.prototype._getKeyCoords = function (circularCoords) {
+    var size = circularCoords.length * 2
+
+    var result = this.createMatrix(size, ' ')
+
+    var char = 65
 
     console.log(result)
 
     for (var i = 0; i < circularCoords.length; i++) {
+      var radius = circularCoords.length - i
       var seq = circularCoords[i]
+
+      console.log('====================== Processing square with radius:', radius)
+      console.log('====================== The key:', seq)
+
       var rotations = 0
       var lastPos = 0
       for (var x = 0; x < seq.length; x++) {
@@ -68,20 +82,18 @@
           continue
         }
         var pos = parseInt(seq[x])
-        if (pos < lastPos + 2) {
-          console.log('Rotate because ', pos, ' is less than ', lastPos + 1)
+        if (pos < lastPos + (radius - 1)) {
+          console.log('   Rotate because ', pos, ' is less than ', lastPos + 1)
           rotations++
         }
-        var sourceCoord = [pos - 4, 2]
+        var sourceCoord = [pos - (radius + 1), radius - 1]
         var newCoord = this._rotate(sourceCoord, rotations)
         console.log('From: ', sourceCoord.join(), ' To: ', newCoord.join())
 
-        var column = newCoord[0] + 3
-        var row = 2 - newCoord[1]
-        // console.log('-------Setting ', column, row)
-        result[row][column] = '#'
+        var column = newCoord[0] + (size / 2)
+        var row = (size / 2) - 1 - newCoord[1]
+        result[row][column] = String.fromCharCode(char++)
 
-        // console.log('-------Result is now ', result)
         lastPos = pos
       }
     }
