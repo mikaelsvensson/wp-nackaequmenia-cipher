@@ -15,20 +15,113 @@
       $(document.createElement('p')).text('Krypterad text: ').append(this.cipherContainer)
     )
 
-    // var that = this
-    // Array(10).fill(0,0,10).forEach(function (value) { console.log(that._shuffle(that._generateKey(4))) })
 
-    var actual = this._getKeyCoords(['324-15', '--132', '-1'])
-    console.log(actual.join('\n'))
-    var expected = [
-      [' ', ' ', '#', ' ', ' ', ' '],
-      ['#', ' ', ' ', ' ', ' ', '#'],
-      [' ', ' ', ' ', '#', ' ', ' '],
-      [' ', '#', ' ', ' ', ' ', '#'],
-      [' ', ' ', '#', ' ', '#', ' '],
-      ['#', ' ', ' ', ' ', ' ', ' ']
-    ]
-    console.log(expected.join('\n'))
+    // for (var i = 0; i < 4; i++) {
+    //   var rotatedCoords = this.rotateCoords(keyCoords, i)
+    //   this.sortByWriteOrder(rotatedCoords)
+    //
+    //   var actual = this.getPrintableCoords(circularCoords.length * 2, rotatedCoords)
+    //   console.log(actual.join('\n'))
+    // }
+
+    //   [' ', ' ', '#', ' ', ' ', ' '],
+    //   ['#', ' ', ' ', ' ', ' ', '#'],
+    //   [' ', ' ', ' ', '#', ' ', ' '],
+    //   [' ', '#', ' ', ' ', ' ', '#'],
+    //   [' ', ' ', '#', ' ', '#', ' '],
+    //   ['#', ' ', ' ', ' ', ' ', ' ']
+
+    var keyCoords = this._getKeyCoords(['324-15', '--132', '-1-'])
+
+    var input = 'FEST HOS EMMA PÅ LÖRDAG FÖR KRYPTOKLUBBEN'.replace(/\s/g, '')
+    var expected = 'OMFAKG EFLÖPS RUÅTKB LHRBÖO YESREP MDNTXA'
+    var actual = this.encrypt(input, keyCoords)
+    console.log('Test 1:')
+    console.log('Expected:     ', expected)
+    console.log('Actual:       ', actual)
+    console.log(expected === actual ? 'The algorithm WORKS!' : 'Something is wrong.')
+
+    console.log('Test 2:')
+    var input = 'DRICK INTE! DU KAN DÖ. DET ÄR GIFT I LÄSKEN.'.replace(/\s/g, '').replace(/[^A-Za-zÅÄÖåäö]/g, 'X')
+    var expected = 'IXDDLD REÄTUI ÄSKCRK AKGENI INNDTF EÖXTXX'
+    var actual = this.encrypt(input, keyCoords)
+    console.log('Expected:     ', expected)
+    console.log('Actual:       ', actual)
+    console.log(expected === actual ? 'The algorithm WORKS!' : 'Something is wrong.')
+  }
+
+  GrilleCipher.prototype.getKey = function (keyData) {
+    return this._getKeyCoords(keyData)
+  }
+
+  GrilleCipher.prototype.encrypt = function (input, keyCoords) {
+    var inputChars = input
+    var size = Math.sqrt(keyCoords.length * 4)
+
+    console.log('Encrypt this: ', inputChars.split(/(.{9})/).filter(function (value) {
+      return !!value
+    }).join(' '))
+
+    var keys = [
+      this.rotateCoords(keyCoords, 0),
+      this.rotateCoords(keyCoords, 3),
+      this.rotateCoords(keyCoords, 2),
+      this.rotateCoords(keyCoords, 1)
+    ].map(this.sortByWriteOrder)
+
+    var currentBoard = this.createMatrix(size, 'X')
+
+    var result = []
+
+    var inputCharIndex = 0
+    while (inputCharIndex < inputChars.length) {
+      var boardPos = inputCharIndex % (size * size)
+      var keyNum = Math.floor(boardPos / keyCoords.length)
+      var keyCoordIndex = boardPos % keyCoords.length
+
+      var coord = keys[keyNum][keyCoordIndex]
+
+      var column = coord[0] + (size / 2)
+      var row = (size / 2) - 1 - coord[1]
+      currentBoard[row][column] = inputChars.charAt(inputCharIndex)
+
+      if (boardPos === (size * size) - 1) {
+        console.log('Time for a new board')
+        result.push(currentBoard.map(function (row) { return row.join('') }).join(' '))
+        currentBoard = this.createMatrix(size, 'X')
+      }
+
+      inputCharIndex++
+    }
+    result.push(currentBoard.map(function (row) { return row.join('') }).join(' '))
+    return result.join(';')
+  }
+
+  GrilleCipher.prototype.rotateCoords = function (coords, rotations) {
+    var rotated = []
+    for (var i = 0; i < coords.length; i++) {
+      rotated.push(this._rotate(coords[i], rotations))
+    }
+    return rotated
+  }
+
+  GrilleCipher.prototype.sortByWriteOrder = function (coords) {
+    return coords.sort(function (a, b) {
+      return b[1] !== a[1] ? b[1] - a[1] : a[0] - b[0]
+    })
+  }
+
+  GrilleCipher.prototype.getPrintableCoords = function (size, keyCoords) {
+    var char = 65
+    var result = this.createMatrix(size, ' ')
+    for (var i = 0; i < keyCoords.length; i++) {
+      var newCoord = keyCoords[i]
+
+      var column = newCoord[0] + (size / 2)
+      var row = (size / 2) - 1 - newCoord[1]
+      result[row][column] = String.fromCharCode(char++)
+    }
+    return result
   }
 
   GrilleCipher.prototype._keyUpHandler = function (event) {
@@ -58,14 +151,9 @@
     }
     return result
   }
+
   GrilleCipher.prototype._getKeyCoords = function (circularCoords) {
-    var size = circularCoords.length * 2
-
-    var result = this.createMatrix(size, ' ')
-
-    var char = 65
-
-    console.log(result)
+    var keyCoords = []
 
     for (var i = 0; i < circularCoords.length; i++) {
       var radius = circularCoords.length - i
@@ -88,20 +176,17 @@
         }
         var sourceCoord = [pos - (radius + 1), radius - 1]
         var newCoord = this._rotate(sourceCoord, rotations)
+        keyCoords.push(newCoord)
         console.log('From: ', sourceCoord.join(), ' To: ', newCoord.join())
-
-        var column = newCoord[0] + (size / 2)
-        var row = (size / 2) - 1 - newCoord[1]
-        result[row][column] = String.fromCharCode(char++)
 
         lastPos = pos
       }
     }
-    return result
+    return keyCoords
   }
 
   GrilleCipher.prototype._rotate = function (coord, rotations) {
-    console.log('Rotate ', coord.join(), ' by ', rotations)
+    // console.log('Rotate ', coord.join(), ' by ', rotations)
     var x = coord[0]//-3
     var y = coord[1]//-3
     while (rotations) {
