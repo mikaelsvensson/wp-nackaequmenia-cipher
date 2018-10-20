@@ -92,4 +92,11 @@ function cipher_grille_register_shortcode($atts)
     return ob_get_clean();
 }
 
+function cipher_grille_theme_style()
+{
+    wp_enqueue_style(SLUG . '-grille-theme', plugins_url('cipher.css', __FILE__));
+}
+
+add_action('wp_enqueue_scripts', 'cipher_grille_theme_style');
+
 add_shortcode('grille', 'cipher_grille_register_shortcode');

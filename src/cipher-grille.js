@@ -9,21 +9,15 @@
   GrilleCipher = function (formElement) {
     this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler.bind(this))
     this.keyField = $('<input size="20" />').keyup(this, this._keyUpHandler.bind(this)).val(this.getRandomKeyParams())
+    this.illustrationContainer = $(document.createElement('div'))
     this.cipherContainer = $(document.createElement('div'))
 
     formElement.append(
       $(document.createElement('p')).text('Nyckel: ').append(this.keyField),
+      $(document.createElement('p')).text('Nyckel för utskrift: ').append(this.illustrationContainer),
       $(document.createElement('p')).text('Text att kryptera: ').append(this.inputField),
       $(document.createElement('p')).text('Krypterad text: ').append(this.cipherContainer)
     )
-
-    // for (var i = 0; i < 4; i++) {
-    //   var rotatedCoords = this.rotateCoords(keyCoords, i)
-    //   this.sortByWriteOrder(rotatedCoords)
-    //
-    //   var actual = this.getPrintableCoords(circularCoords.length * 2, rotatedCoords)
-    //   console.log(actual.join('\n'))
-    // }
 
     //   [' ', ' ', '#', ' ', ' ', ' '],
     //   ['#', ' ', ' ', ' ', ' ', '#'],
@@ -74,7 +68,6 @@
       this._shuffle(['1', '2', '3', SKIP_SIDE, SKIP_SIDE]).join(''),
       this._shuffle(['1', SKIP_SIDE, SKIP_SIDE, SKIP_SIDE]).join('')].join('')
   }
-
 
   GrilleCipher.prototype.getKey = function (keyData) {
     return this._getKeyCoords(keyData)
@@ -133,21 +126,20 @@
     })
   }
 
-  GrilleCipher.prototype.getPrintableCoords = function (size, keyCoords) {
-    var char = 65
+  GrilleCipher.prototype.getPrintableCoords = function (keyCoords) {
+    var size = Math.sqrt(keyCoords.length * 4)
     var result = this.createMatrix(size, ' ')
     for (var i = 0; i < keyCoords.length; i++) {
       var newCoord = keyCoords[i]
 
       var column = newCoord[0] + (size / 2)
       var row = (size / 2) - 1 - newCoord[1]
-      result[row][column] = String.fromCharCode(char++)
+      result[row][column] = '#'
     }
     return result
   }
 
   GrilleCipher.prototype._keyUpHandler = function (event) {
-    // var that = event.data
     this._encrypt()
   }
 
@@ -169,9 +161,6 @@
       var radius = circularCoords.length - i
       var seq = circularCoords[i]
 
-      // console.log('====================== Processing square with radius:', radius)
-      // console.log('====================== The key:', seq)
-
       var rotations = 0
       var lastPos = 0
       for (var x = 0; x < seq.length; x++) {
@@ -181,13 +170,11 @@
         }
         var pos = parseInt(seq[x])
         if (pos < lastPos + (radius - 1)) {
-          // console.log('   Rotate because ', pos, ' is less than ', lastPos + 1)
           rotations++
         }
         var sourceCoord = [pos - (radius + 1), radius - 1]
         var newCoord = this._rotate(sourceCoord, rotations)
         keyCoords.push(newCoord)
-        // console.log('From: ', sourceCoord.join(), ' To: ', newCoord.join())
 
         lastPos = pos
       }
@@ -197,14 +184,13 @@
 
   GrilleCipher.prototype._rotate = function (coord, rotations) {
     // console.log('Rotate ', coord.join(), ' by ', rotations)
-    var x = coord[0]//-3
-    var y = coord[1]//-3
+    var x = coord[0]
+    var y = coord[1]
     while (rotations) {
       var oldX = x
       x = y
       y = -oldX - 1
       rotations--
-      // console.log('Rotated once')
     }
     return [x, y]
   }
@@ -221,12 +207,21 @@
   }
 
   GrilleCipher.prototype._encrypt = function (text) {
-    var symbols = 'ABCDEFGHIJKLMNOPRSTUVXYZÅÄÖ'
 
     var text = this.inputField.val()
     var key = this.keyField.val()
 
     var keyCoords = this.getFixedKeyCoords(key)
+
+    const rows = this.getPrintableCoords(keyCoords).map(function (value) {
+      return value.map(function (column) {
+        return column=== '#' ? '<div class="grille-box grille-box-used">' + column + '</div>' : '<div class="grille-box">' + column + '</div>'
+      }).join('')
+    }).map(function (row) {
+        return '<div class="grille-row">' + row + '</div>'
+      }
+    ).join('')
+    this.illustrationContainer.html('<div class="grille-grid">' + rows + '</div>')
 
     var cipherText = this.encrypt(text, keyCoords)
 
