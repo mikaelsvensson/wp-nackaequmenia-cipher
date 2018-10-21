@@ -8,12 +8,13 @@
 
   GrilleCipher = function (formElement) {
     this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler.bind(this))
+    this.newKeyButton = $('<button type="button"/>').text('Slumpa ny').click(this, this._generateNewKey.bind(this))
     this.keyField = $('<input size="20" />').keyup(this, this._keyUpHandler.bind(this)).val(this.getRandomKeyParams())
     this.illustrationContainer = $(document.createElement('div'))
     this.cipherContainer = $(document.createElement('div'))
 
     formElement.append(
-      $(document.createElement('p')).text('Nyckel: ').append(this.keyField),
+      $(document.createElement('p')).text('Nyckel: ').append(this.keyField).append(this.newKeyButton),
       $(document.createElement('p')).text('Nyckel för utskrift: ').append(this.illustrationContainer),
       $(document.createElement('p')).text('Text att kryptera: ').append(this.inputField),
       $(document.createElement('p')).text('Krypterad text: ').append(this.cipherContainer)
@@ -27,7 +28,6 @@
     //   ['#', ' ', ' ', ' ', ' ', ' ']
 
     var keyParams = this.getRandomKeyParams()
-    console.log(keyParams)
 
     var keyCoords = this.getFixedKeyCoords('324A15AA132A1AA')
 
@@ -52,6 +52,11 @@
     console.log('Expected:     ', expected)
     console.log('Actual:       ', actual)
     console.log(expected === actual ? 'The algorithm WORKS!' : 'Something is wrong.')
+  }
+
+  GrilleCipher.prototype._generateNewKey = function (event) {
+    this.keyField.val(this.getRandomKeyParams())
+    this._encrypt()
   }
 
   GrilleCipher.prototype.getFixedKeyCoords = function (keyParams) {
@@ -102,13 +107,13 @@
 
       if (boardPos === (size * size) - 1) {
         console.log('Time for a new board')
-        result.push(currentBoard.map(function (row) { return row.join('') }).join(' '))
+        result.push(currentBoard.map(function (row) { return row.join('') }).join(''))
         currentBoard = this.createMatrix(size, 'X')
       }
 
       inputCharIndex++
     }
-    result.push(currentBoard.map(function (row) { return row.join('') }).join(' '))
+    result.push(currentBoard.map(function (row) { return row.join('') }).join(''))
     return result.join(';')
   }
 
@@ -206,7 +211,7 @@
     return array
   }
 
-  GrilleCipher.prototype._encrypt = function (text) {
+  GrilleCipher.prototype._encrypt = function () {
 
     var text = this.inputField.val()
     var key = this.keyField.val()
@@ -215,17 +220,34 @@
 
     const rows = this.getPrintableCoords(keyCoords).map(function (value) {
       return value.map(function (column) {
-        return column=== '#' ? '<div class="grille-box grille-box-used">' + column + '</div>' : '<div class="grille-box">' + column + '</div>'
+        return column === '#' ? '<div class="grille-box grille-box-used">' + column + '</div>' : '<div class="grille-box">' + column + '</div>'
       }).join('')
     }).map(function (row) {
         return '<div class="grille-row">' + row + '</div>'
       }
     ).join('')
-    this.illustrationContainer.html('<div class="grille-grid">' + rows + '</div>')
+    this.illustrationContainer.html('<div class="grille-grid">' + rows + '<p>' + key + '</p></div>')
 
     var cipherText = this.encrypt(text, keyCoords)
 
-    this.cipherContainer.text(cipherText)
+    const size = Math.sqrt(keyCoords.length * 4)
+    var matrix = this.createMatrix(size)
+    for (var i = 0; i < cipherText.length; i++) {
+      var char = cipherText[i]
+      var col = i % size
+      var row = Math.floor(i / size)
+      matrix[row][col] = char
+    }
+    var cipherText = matrix.map(function (value) {
+      return value.map(function (column) {
+        return '<div class="grille-box">' + column + '</div>'
+      }).join('')
+    }).map(function (row) {
+        return '<div class="grille-row">' + row + '</div>'
+      }
+    ).join('')
+
+    this.cipherContainer.html('<div class="grille-grid">' + cipherText + '</div>')
     // this.inputField.toggleClass('cipher-formfield-error', !inputValid).attr('title', inputValid ? '' : 'Texten innehåller bokstäver/tecken som inte kan översättas.')
   }
 
