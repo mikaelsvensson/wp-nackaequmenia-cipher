@@ -1,1 +1,1 @@
-<div class="cipher-morse"></div>
+<div class="cipher-morse" data-base-url="<?= plugins_url( 'assets/', __FILE__ ) ?>"></div>

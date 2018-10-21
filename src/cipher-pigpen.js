@@ -3,6 +3,8 @@
   var $ = jQuery
 
   PigpenCipher = function (formElement) {
+    this.baseUrl = formElement.get(0).dataset.baseUrl
+
     this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler)
 
     this.cipherContainer = $(document.createElement('div'))
@@ -32,7 +34,7 @@
         var offset = symbols.indexOf(c)
         if (offset >= 0) {
           var el = document.createElement('img')
-          el.src = 'http://www.nackasmu.se/tools/cipher/pigpen-symbol-' + (offset + 1) + '.gif'
+          el.src = this.baseUrl + 'pigpen-symbol-' + (offset + 1) + '.gif'
           if (spaceDetected) {
             el.style.marginLeft = '40px'
             spaceDetected = false

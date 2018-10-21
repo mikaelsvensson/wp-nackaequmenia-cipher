@@ -3,6 +3,8 @@
   var $ = jQuery
 
   MorseCode = function (formElement) {
+    this.baseUrl = formElement.get(0).dataset.baseUrl
+
     this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler)
 
     this.cipherContainer = $(document.createElement('div'))
@@ -33,10 +35,10 @@
         if (offset >= 0) {
           var el = document.createElement('img')
           if (offset < 9) {
-            el.src = 'http://www.nackasmu.se/tools/cipher/morse-symbol-0' + (offset + 1) + '.gif'
+            el.src = this.baseUrl + 'morse-symbol-0' + (offset + 1) + '.gif'
           }
           else {
-            el.src = 'http://www.nackasmu.se/tools/cipher/morse-symbol-' + (offset + 1) + '.gif'
+            el.src = this.baseUrl + 'morse-symbol-' + (offset + 1) + '.gif'
           }
           el.style.display = 'block'
           el.style.marginTop = spaceDetected ? '20px' : '5px'
