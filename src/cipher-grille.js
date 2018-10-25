@@ -7,16 +7,16 @@
   const SKIP_SIDE = 'A'
 
   GrilleCipher = function (formElement) {
-    this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler.bind(this))
+    this.inputField = $('<input size="50" />').val('FEST HOS EMMA PÅ LÖRDAG FÖR KRYPTOKLUBBEN').keyup(this, this._keyUpHandler.bind(this))
     this.newKeyButton = $('<button type="button"/>').text('Slumpa ny').click(this, this._generateNewKey.bind(this))
     this.keyField = $('<input size="20" />').keyup(this, this._keyUpHandler.bind(this)).val(this.getRandomKeyParams())
     this.illustrationContainer = $(document.createElement('div'))
     this.cipherContainer = $(document.createElement('div'))
 
     formElement.append(
+      $(document.createElement('p')).text('Text att kryptera: ').append(this.inputField),
       $(document.createElement('p')).text('Nyckel: ').append(this.keyField).append(this.newKeyButton),
       $(document.createElement('p')).text('Nyckel för utskrift: ').append(this.illustrationContainer),
-      $(document.createElement('p')).text('Text att kryptera: ').append(this.inputField),
       $(document.createElement('p')).text('Krypterad text: ').append(this.cipherContainer)
     )
 
@@ -33,7 +33,7 @@
 
     console.log('Test 1:')
     var input = 'FEST HOS EMMA PÅ LÖRDAG FÖR KRYPTOKLUBBEN'.replace(/\s/g, '')
-    var expected = 'OMFAKG EFLÖPS RUÅTKB LHRBÖO YESREP MDNTXA'
+    var expected = 'OMFAKG EFLÖPS RUÅTKB LHRBÖO YESREP MDNTXA'.replace(/\s/g, '')
     var actual = this.encrypt(input, keyCoords)
     console.log('Encrypt this: ', input.split(/(.{9})/).filter(function (value) {
       return !!value
@@ -44,7 +44,7 @@
 
     console.log('Test 2:')
     var input = 'DRICK INTE! DU KAN DÖ. DET ÄR GIFT I LÄSKEN.'.replace(/\s/g, '').replace(/[^A-Za-zÅÄÖåäö]/g, 'X')
-    var expected = 'IXDDLD REÄTUI ÄSKCRK AKGENI INNDTF EÖXTXX'
+    var expected = 'IXDDLD REÄTUI ÄSKCRK AKGENI INNDTF EÖXTXX'.replace(/\s/g, '')
     var actual = this.encrypt(input, keyCoords)
     console.log('Encrypt this: ', input.split(/(.{9})/).filter(function (value) {
       return !!value
@@ -52,6 +52,8 @@
     console.log('Expected:     ', expected)
     console.log('Actual:       ', actual)
     console.log(expected === actual ? 'The algorithm WORKS!' : 'Something is wrong.')
+
+    this._encrypt()
   }
 
   GrilleCipher.prototype._generateNewKey = function (event) {
@@ -228,7 +230,7 @@
     ).join('')
     this.illustrationContainer.html('<div class="grille-grid">' + rows + '<p>' + key + '</p></div>')
 
-    var cipherText = this.encrypt(text, keyCoords)
+    var cipherText = this.encrypt(text.replace(/\s/g, ''), keyCoords)
 
     const size = Math.sqrt(keyCoords.length * 4)
     var matrix = this.createMatrix(size)
