@@ -5,7 +5,7 @@
   PigpenCipher = function (formElement) {
     this.baseUrl = formElement.get(0).dataset.baseUrl
 
-    this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler)
+    this.inputField = $('<input size="50" type="text" />').keyup(this, this._keyUpHandler)
 
     this.cipherContainer = $(document.createElement('div'))
 
@@ -29,8 +29,7 @@
       var c = text.toUpperCase().charAt(i)
       if (c === ' ') {
         spaceDetected = true
-      }
-      else {
+      } else {
         var offset = symbols.indexOf(c)
         if (offset >= 0) {
           var el = document.createElement('img')
@@ -46,7 +45,7 @@
         }
       }
     }
-    this.inputField.toggleClass('cipher-formfield-error', !inputValid).attr('title', inputValid ? '' : 'Texten innehåller bokstäver/tecken som inte kan översättas.')
+    CipherUtils.handleInputError(this.inputField, inputValid, 'Texten innehåller bokstäver/tecken som inte kan översättas.')
   }
 
   $('.cipher-pigpen').each(function () {new PigpenCipher($(this))})

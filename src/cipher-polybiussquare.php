@@ -1,1 +1,1 @@
-<div class="cipher-polybiussquare"></div>
+<div class="cipher cipher-polybiussquare"></div>

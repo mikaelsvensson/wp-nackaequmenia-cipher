@@ -1,1 +1,1 @@
-<div class="cipher-grille"></div>
+<div class="cipher cipher-grille"></div>

@@ -13,6 +13,7 @@ const SLUG = 'nackaequmenia-cipher';
 
 function cipher_caesar_enqueue_script()
 {
+    wp_enqueue_script(SLUG . '-shared', plugins_url('cipher-shared.js', __FILE__), ['jquery'], false, true);
     wp_enqueue_script(SLUG . '-caesar', plugins_url('cipher-caesar.js', __FILE__), ['jquery'], false, true);
 }
 
@@ -30,6 +31,7 @@ add_shortcode('caesar', 'cipher_caesar_register_shortcode');
 
 function cipher_morse_enqueue_script()
 {
+    wp_enqueue_script(SLUG . '-shared', plugins_url('cipher-shared.js', __FILE__), ['jquery'], false, true);
     wp_enqueue_script(SLUG . '-morse', plugins_url('cipher-morse.js', __FILE__), ['jquery'], false, true);
 }
 
@@ -47,6 +49,7 @@ add_shortcode('morse', 'cipher_morse_register_shortcode');
 
 function cipher_pigpen_enqueue_script()
 {
+    wp_enqueue_script(SLUG . '-shared', plugins_url('cipher-shared.js', __FILE__), ['jquery'], false, true);
     wp_enqueue_script(SLUG . '-pigpen', plugins_url('cipher-pigpen.js', __FILE__), ['jquery'], false, true);
 }
 
@@ -64,6 +67,7 @@ add_shortcode('pigpen', 'cipher_pigpen_register_shortcode');
 
 function cipher_polybiussquare_enqueue_script()
 {
+    wp_enqueue_script(SLUG . '-shared', plugins_url('cipher-shared.js', __FILE__), ['jquery'], false, true);
     wp_enqueue_script(SLUG . '-polybiussquare', plugins_url('cipher-polybiussquare.js', __FILE__), ['jquery'], false, true);
 }
 
@@ -81,6 +85,7 @@ add_shortcode('polybiussquare', 'cipher_polybiussquare_register_shortcode');
 
 function cipher_grille_enqueue_script()
 {
+    wp_enqueue_script(SLUG . '-shared', plugins_url('cipher-shared.js', __FILE__), ['jquery'], false, true);
     wp_enqueue_script(SLUG . '-grille', plugins_url('cipher-grille.js', __FILE__), ['jquery'], false, true);
 }
 

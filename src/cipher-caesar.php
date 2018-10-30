@@ -1,1 +1,1 @@
-<div class="cipher-caesar"></div>
+<div class="cipher cipher-caesar"></div>

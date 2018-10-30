@@ -6,9 +6,9 @@
     this.symbols = 'ABCDEFGHIJKLMNOPRSTUVYÅÄÖ'
     this.cipherContainer = $(document.createElement('div'))
 
-    this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler)
-    this.word1Field = $('<input size="7" />').keyup(this, this._cfgKeyUpHandler).val('SCOUT')
-    this.word2Field = $('<input size="7" />').keyup(this, this._cfgKeyUpHandler).val('scout')
+    this.inputField = $('<input size="50" type="text" />').keyup(this, this._keyUpHandler)
+    this.word1Field = $('<input size="7" type="text" />').keyup(this, this._cfgKeyUpHandler).val('SCOUT')
+    this.word2Field = $('<input size="7" type="text" />').keyup(this, this._cfgKeyUpHandler).val('scout')
 
     var td1_2 = document.createElement('td')
     this.word1Field.appendTo(td1_2)
@@ -122,9 +122,9 @@
       }
     }
 
-    this.word1Field.toggleClass('cipher-formfield-error', !word1Valid).attr('title', word1Valid ? '' : 'Ordet måste vara exakt 5 bokstäver långt och varje bokstav får bara förekomma en gång.')
-    this.word2Field.toggleClass('cipher-formfield-error', !word2Valid).attr('title', word2Valid ? '' : 'Ordet måste vara exakt 5 bokstäver långt och varje bokstav får bara förekomma en gång.')
-    this.inputField.toggleClass('cipher-formfield-error', !inputValid).attr('title', inputValid ? '' : 'Texten innehåller bokstäver/tecken som inte kan översättas.')
+    CipherUtils.handleInputError(this.word1Field, word1Valid, 'Ordet måste vara exakt 5 bokstäver långt och varje bokstav får bara förekomma en gång.')
+    CipherUtils.handleInputError(this.word2Field, word2Valid, 'Ordet måste vara exakt 5 bokstäver långt och varje bokstav får bara förekomma en gång.')
+    CipherUtils.handleInputError(this.inputField, inputValid, 'Texten innehåller bokstäver/tecken som inte kan översättas.')
 
     this.cipherContainer.text(result)
   }

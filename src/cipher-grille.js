@@ -7,10 +7,13 @@
   const SKIP_SIDE = 'A'
 
   GrilleCipher = function (formElement) {
-    this.inputField = $('<input size="50" />').val('FEST HOS EMMA PÅ LÖRDAG FÖR KRYPTOKLUBBEN').keyup(this, this._keyUpHandler.bind(this))
+    // TODO: Add support for texts longer than 36 letters
+    this.inputField = $('<input size="50" type="text" />').val('FEST HOS EMMA PÅ LÖRDAG FÖR KRYPTOKLUBBEN').keyup(this, this._keyUpHandler.bind(this))
     this.newKeyButton = $('<button type="button"/>').text('Slumpa ny').click(this, this._generateNewKey.bind(this))
-    this.keyField = $('<input size="20" />').keyup(this, this._keyUpHandler.bind(this)).val(this.getRandomKeyParams())
+    // TODO: Add input validation to the key field
+    this.keyField = $('<input size="20" type="text" />').keyup(this, this._keyUpHandler.bind(this)).val(this.getRandomKeyParams())
     this.illustrationContainer = $(document.createElement('div'))
+    // TODO: Show encrypted text as string AND in grid
     this.cipherContainer = $(document.createElement('div'))
 
     formElement.append(
@@ -76,6 +79,7 @@
       this._shuffle(['1', SKIP_SIDE, SKIP_SIDE, SKIP_SIDE]).join('')].join('')
   }
 
+  // TODO: This seems like an unnecessary wrapper function
   GrilleCipher.prototype.getKey = function (keyData) {
     return this._getKeyCoords(keyData)
   }
@@ -91,6 +95,7 @@
       this.rotateCoords(keyCoords, 1)
     ].map(this.sortByWriteOrder)
 
+    // TODO: Make "X" into a constant, or better yet, make it configurable
     var currentBoard = this.createMatrix(size, 'X')
 
     var result = []
@@ -108,7 +113,6 @@
       currentBoard[row][column] = inputChars.charAt(inputCharIndex)
 
       if (boardPos === (size * size) - 1) {
-        console.log('Time for a new board')
         result.push(currentBoard.map(function (row) { return row.join('') }).join(''))
         currentBoard = this.createMatrix(size, 'X')
       }
@@ -222,6 +226,7 @@
 
     const rows = this.getPrintableCoords(keyCoords).map(function (value) {
       return value.map(function (column) {
+        // TODO: Testing for presence of "#" seems a bit unrefined.
         return column === '#' ? '<div class="grille-box grille-box-used">' + column + '</div>' : '<div class="grille-box">' + column + '</div>'
       }).join('')
     }).map(function (row) {

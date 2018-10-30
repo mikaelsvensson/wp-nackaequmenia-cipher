@@ -3,8 +3,8 @@
   var $ = jQuery
 
   CaesarCipher = function (formElement) {
-    this.inputField = $('<input size="50" />').keyup(this, this._keyUpHandler)
-    this.offsetField = $('<input size="5" />').keyup(this, this._cfgKeyUpHandler).val(1)
+    this.inputField = $('<input size="50" type="text" />').keyup(this, this._keyUpHandler)
+    this.offsetField = $('<input size="5" type="number" />').keyup(this, this._cfgKeyUpHandler).val(1)
 
     var select = document.createElement('select')
     select.appendChild(new Option('ABCDEFGHIJKLMNOPQRSTUVXYZÅÄÖ'))
@@ -83,8 +83,8 @@
       }
     }
 
-    this.offsetField.toggleClass('cipher-formfield-error', !validOffset).attr('title', validOffset ? '' : 'Inte ett giltigt heltal.')
-    this.inputField.toggleClass('cipher-formfield-error', !inputValid).attr('title', inputValid ? '' : 'Texten innehåller bokstäver/tecken som inte finns i valt alfabete.')
+    CipherUtils.handleInputError(this.offsetField, validOffset, 'Inte ett giltigt heltal.')
+    CipherUtils.handleInputError(this.inputField, inputValid, 'Texten innehåller bokstäver/tecken som inte finns i valt alfabete.')
 
     this.cipherContainer.text(result)
   }

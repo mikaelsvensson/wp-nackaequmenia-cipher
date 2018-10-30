@@ -1,1 +1,1 @@
-<div class="cipher-pigpen" data-base-url="<?= plugins_url( 'assets/', __FILE__ ) ?>"></div>
+<div class="cipher cipher-pigpen" data-base-url="<?= plugins_url( 'assets/', __FILE__ ) ?>"></div>
