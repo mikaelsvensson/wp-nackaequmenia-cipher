@@ -1,1 +1,1 @@
-<div class="cipher cipher-grille"></div>
+<div class="cipher cipher-grille" data-size="<?= $atts['size'] ?>"></div>

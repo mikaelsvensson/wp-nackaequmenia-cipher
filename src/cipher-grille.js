@@ -4,9 +4,10 @@
 
   var $ = jQuery
 
-  const SKIP_SIDE = 'A'
+  var SKIP_SIDE = 'A'
 
   GrilleCipher = function (formElement) {
+    this.renderSize = formElement.get(0).dataset.size || 500
     // TODO: Add support for texts longer than 36 letters
     this.inputField = $('<input size="50" type="text" />').val('FEST HOS EMMA PÅ LÖRDAG FÖR KRYPTOKLUBBEN').keyup(this, this._keyUpHandler.bind(this))
     this.newKeyButton = $('<button type="button"/>').text('Slumpa ny').click(this, this._generateNewKey.bind(this))
@@ -150,6 +151,19 @@
     return result
   }
 
+  GrilleCipher.prototype.getTopRightCoords = function (keyCoords) {
+    var size = Math.sqrt(keyCoords.length * 4)
+    var result = []
+    for (var i = 0; i < keyCoords.length; i++) {
+      var newCoord = keyCoords[i]
+
+      var right = newCoord[0] + (size / 2)
+      var top = (size / 2) - 1 - newCoord[1]
+      result.push({right: right, top: top})
+    }
+    return result
+  }
+
   GrilleCipher.prototype._keyUpHandler = function (event) {
     this._encrypt()
   }
@@ -194,7 +208,6 @@
   }
 
   GrilleCipher.prototype._rotate = function (coord, rotations) {
-    // console.log('Rotate ', coord.join(), ' by ', rotations)
     var x = coord[0]
     var y = coord[1]
     while (rotations) {
@@ -217,45 +230,128 @@
     return array
   }
 
-  GrilleCipher.prototype._encrypt = function () {
+  GrilleCipher.prototype._createCanvasDownloadLink = function (fileName, canvasElement) {
+    var downloadLink = document.createElement('a')
+    downloadLink.download = fileName
+    downloadLink.innerHTML = 'Ladda ner'
+    downloadLink.href = canvasElement.toDataURL('image/png')
+    return downloadLink
+  }
 
-    var text = this.inputField.val()
-    var key = this.keyField.val()
-
+  GrilleCipher.prototype._createCipherElement = function (key, text) {
     var keyCoords = this.getFixedKeyCoords(key)
-
-    const rows = this.getPrintableCoords(keyCoords).map(function (value) {
-      return value.map(function (column) {
-        // TODO: Testing for presence of "#" seems a bit unrefined.
-        return column === '#' ? '<div class="grille-box grille-box-used">' + column + '</div>' : '<div class="grille-box">' + column + '</div>'
-      }).join('')
-    }).map(function (row) {
-        return '<div class="grille-row">' + row + '</div>'
-      }
-    ).join('')
-    this.illustrationContainer.html('<div class="grille-grid">' + rows + '<p>' + key + '</p></div>')
-
+    var size = Math.sqrt(keyCoords.length * 4)
     var cipherText = this.encrypt(text.replace(/\s/g, ''), keyCoords)
 
-    const size = Math.sqrt(keyCoords.length * 4)
-    var matrix = this.createMatrix(size)
-    for (var i = 0; i < cipherText.length; i++) {
-      var char = cipherText[i]
-      var col = i % size
-      var row = Math.floor(i / size)
-      matrix[row][col] = char
-    }
-    var cipherText = matrix.map(function (value) {
-      return value.map(function (column) {
-        return '<div class="grille-box">' + column + '</div>'
-      }).join('')
-    }).map(function (row) {
-        return '<div class="grille-row">' + row + '</div>'
-      }
-    ).join('')
+    var cipherContent
 
-    this.cipherContainer.html('<div class="grille-grid">' + cipherText + '</div>')
-    // this.inputField.toggleClass('cipher-formfield-error', !inputValid).attr('title', inputValid ? '' : 'Texten innehåller bokstäver/tecken som inte kan översättas.')
+    var rawCipherTextElement = $('<div><code>' + cipherText.split(/(.{6})/).join(' ') + '</code></div>')
+
+    var canvas = this._createCanvas(this.renderSize)
+    if (canvas) {
+      var ctx = canvas.getContext('2d')
+      var rectSize = Math.floor(this.renderSize / size)
+
+      ctx.font = (rectSize * 0.8) + 'px serif'
+      ctx.textAlign = 'center'
+      ctx.textBaseline = 'alphabetic'
+      ctx.fillStyle = 'rgb(0, 0, 0)'
+      for (var i = 0; i < cipherText.length; i++) {
+        var char = cipherText[i]
+        var col = i % size
+        var row = Math.floor(i / size)
+        ctx.fillText(char, col * rectSize + (rectSize / 2), row * rectSize + (rectSize * 0.8))
+      }
+
+      const fileName = 'halchiffer-' + key + '-' + text.replace(/[^a-zA-Z]/g, '')
+      var downloadLink = this._createCanvasDownloadLink(fileName, canvas)
+      cipherContent = $(document.createElement('div'))
+        .append(rawCipherTextElement)
+        .append(canvas)
+        .append($(document.createElement('div')).append(downloadLink))
+    } else {
+      var matrix = this.createMatrix(size)
+      for (var i = 0; i < cipherText.length; i++) {
+        var char = cipherText[i]
+        var col = i % size
+        var row = Math.floor(i / size)
+        matrix[row][col] = char
+      }
+      var cipherTextMatrix = matrix.map(function (value) {
+        return value.map(function (column) {
+          return '<div class="grille-box">' + column + '</div>'
+        }).join('')
+      }).map(function (row) {
+          return '<div class="grille-row">' + row + '</div>'
+        }
+      ).join('')
+
+      cipherContent = $(document.createElement('div'))
+        .append(rawCipherTextElement)
+        .append($('<div class="grille-grid">' + cipherTextMatrix + '</div>'))
+    }
+    return cipherContent
+  }
+
+  GrilleCipher.prototype._createCanvas = function (size) {
+    var el = document.createElement('canvas')
+    if (el.getContext) {
+      el.width = size
+      el.height = size
+      var ctx = el.getContext('2d')
+      ctx.fillStyle = 'rgb(255, 255, 255)'
+      ctx.fillRect(0, 0, this.renderSize, this.renderSize)
+      return el
+    } else {
+      return null
+    }
+  }
+
+  GrilleCipher.prototype._createIllustrationElement = function (key) {
+    var keyCoords = this.getFixedKeyCoords(key)
+    var size = Math.sqrt(keyCoords.length * 4)
+    var illustrationContent
+    var canvas = this._createCanvas(this.renderSize)
+    if (canvas) {
+      var ctx = canvas.getContext('2d')
+
+      ctx.fillStyle = 'rgb(0, 0, 0)'
+      var coords = this.getTopRightCoords(keyCoords)
+      var rectSize = Math.floor(this.renderSize / size)
+      for (var i = 0; i < coords.length; i++) {
+        var coord = coords[i]
+        ctx.fillRect(coord.right * rectSize, coord.top * rectSize, rectSize, rectSize)
+      }
+
+      var downloadLink = this._createCanvasDownloadLink('halchiffer-' + key, canvas)
+      illustrationContent = $(document.createElement('div'))
+        .append(canvas)
+        .append($(document.createElement('div')).append(downloadLink))
+    } else {
+      var rows = this.getPrintableCoords(keyCoords).map(function (value) {
+        return value.map(function (column) {
+          // TODO: Testing for presence of "#" seems a bit unrefined.
+          return column === '#' ? '<div class="grille-box grille-box-used">' + column + '</div>' : '<div class="grille-box">' + column + '</div>'
+        }).join('')
+      }).map(function (row) {
+          return '<div class="grille-row">' + row + '</div>'
+        }
+      ).join('')
+      illustrationContent = $('<div class="grille-grid">' + rows + '<p>' + key + '</p></div>')
+    }
+    return illustrationContent
+  }
+
+  GrilleCipher.prototype._encrypt = function () {
+
+    var key = this.keyField.val()
+
+    this.illustrationContainer.empty().append(this._createIllustrationElement(key))
+
+    var text = this.inputField.val()
+
+    this.cipherContainer.empty().append(this._createCipherElement(key, text))
+
   }
 
   $('.cipher-grille').each(function () {new GrilleCipher($(this))})

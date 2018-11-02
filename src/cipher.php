@@ -92,6 +92,10 @@ function cipher_grille_enqueue_script()
 function cipher_grille_register_shortcode($atts)
 {
     add_action('get_footer', 'cipher_grille_enqueue_script');
+    $atts = shortcode_atts(
+        array(
+            'size' => 500
+        ), $atts);
     ob_start();
     require 'cipher-grille.php';
     return ob_get_clean();
